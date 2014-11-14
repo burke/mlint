@@ -39,19 +39,28 @@ func termWidth() int {
 	return i
 }
 
-func check(cmd, path string) {
+func check(cmd, path string) (ok bool) {
 	banner("4", "🔍", cmd+" running", path)
 	if err := run(cmd, path); err != nil {
 		banner("1", "❌", cmd+" failed", "")
+		return false
 	} else {
 		banner("2", "✅", cmd+" passed", "")
+		return true
 	}
 }
 
 func main() {
-	check("go fmt", "./...")
-	check("go vet", "./...")
-	check("errcheck", "./...")
-	check("golint", "./...")
-	check("go test", "./...")
+	ok := true
+	checks := []string{"go fmt", "go vet", "errcheck", "golint", "go test"}
+	for _, chk := range checks {
+		if !check(chk, "./...") {
+			ok = false
+		}
+	}
+
+	if ok {
+		os.Exit(0)
+	}
+	os.Exit(1)
 }
