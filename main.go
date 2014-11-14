@@ -50,7 +50,26 @@ func check(cmd, path string) (ok bool) {
 	}
 }
 
+func setup() {
+	os.Mkdir("/tmp/mlint", 0755)
+	gp := os.Getenv("GOPATH")
+	defer os.Setenv("GOPATH", gp)
+	os.Setenv("GOPATH", "/tmp/mlint")
+	os.Setenv("PATH", "/tmp/mlint/bin:"+os.Getenv("PATH"))
+	if _, err := os.Stat("/tmp/mlint/bin/vet"); err != nil {
+		fmt.Println(exec.Command("go", "get", "golang.org/x/tools/cmd/vet").Output())
+	}
+	if _, err := os.Stat("/tmp/mlint/bin/errcheck"); err != nil {
+		fmt.Println(exec.Command("go", "get", "github.com/burke/errcheck").Output())
+	}
+	if _, err := os.Stat("/tmp/mlint/bin/golint"); err != nil {
+		fmt.Println(exec.Command("go", "get", "github.com/golang/lint/golint").Output())
+	}
+}
+
 func main() {
+	setup()
+
 	ok := true
 	checks := []string{"go fmt", "go vet", "errcheck", "golint", "go test"}
 	for _, chk := range checks {
