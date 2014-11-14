@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"strconv"
@@ -47,18 +48,20 @@ func check(cmd, path string) (ok bool) {
 	if err := run(cmd, path); err != nil {
 		banner("1", "❌", cmd+" failed", "")
 		return false
-	} else {
-		banner("2", "✅", cmd+" passed", "")
-		return true
 	}
+	banner("2", "✅", cmd+" passed", "")
+	return true
 }
 
-func setup() {
-	os.Mkdir("/tmp/mlint", 0755)
+func setup() error {
+	err := os.Mkdir("/tmp/mlint", 0755)
+	if err != nil {
+		return err
+	}
 	gp := os.Getenv("GOPATH")
-	defer os.Setenv("GOPATH", gp)
-	os.Setenv("GOPATH", "/tmp/mlint")
-	os.Setenv("PATH", "/tmp/mlint/bin:"+os.Getenv("PATH"))
+	defer func() { _ = os.Setenv("GOPATH", gp) }()
+	_ = os.Setenv("GOPATH", "/tmp/mlint")
+	_ = os.Setenv("PATH", "/tmp/mlint/bin:"+os.Getenv("PATH"))
 	if _, err := os.Stat("/tmp/mlint/bin/vet"); err != nil {
 		fmt.Println(exec.Command("go", "get", "golang.org/x/tools/cmd/vet").Output())
 	}
@@ -68,13 +71,16 @@ func setup() {
 	if _, err := os.Stat("/tmp/mlint/bin/golint"); err != nil {
 		fmt.Println(exec.Command("go", "get", "github.com/golang/lint/golint").Output())
 	}
+	return nil
 }
 
 func main() {
-	setup()
+	if err := setup(); err != nil {
+		log.Fatal(err)
+	}
 
 	ok := true
-	checks := []string{"go fmt", "go vet", "errcheck", "golint", "go test"}
+	checks := []string{"go fmt", "go vet", "errcheck", "golint", "go test -race"}
 	for _, chk := range checks {
 		if !check(chk, "./...") {
 			ok = false
