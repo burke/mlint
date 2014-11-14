@@ -9,7 +9,10 @@ import (
 )
 
 func run(cmd, path string) error {
-	return exec.Command("/bin/sh", "-c", cmd+" "+path).Run()
+	command := exec.Command("/bin/sh", "-c", cmd+" "+path)
+	command.Stdout = os.Stdout
+	command.Stderr = os.Stderr
+	return command.Run()
 }
 
 func banner(color, emoji, cmd, path string) {
