@@ -49,6 +49,7 @@ func check(cmd, path string) {
 }
 
 func main() {
+	check("go fmt", "./...")
 	check("go vet", "./...")
 	check("errcheck", "./...")
 	check("golint", "./...")
