@@ -54,10 +54,7 @@ func check(cmd, path string) (ok bool) {
 }
 
 func setup() error {
-	err := os.Mkdir("/tmp/mlint", 0755)
-	if err != nil {
-		return err
-	}
+	_ = os.Mkdir("/tmp/mlint", 0755)
 	gp := os.Getenv("GOPATH")
 	defer func() { _ = os.Setenv("GOPATH", gp) }()
 	_ = os.Setenv("GOPATH", "/tmp/mlint")
@@ -70,6 +67,12 @@ func setup() error {
 	}
 	if _, err := os.Stat("/tmp/mlint/bin/golint"); err != nil {
 		fmt.Println(exec.Command("go", "get", "github.com/golang/lint/golint").Output())
+	}
+	if _, err := os.Stat("/tmp/mlint/bin/deadcode"); err != nil {
+		fmt.Println(exec.Command("go", "get", "github.com/remyoudompheng/go-misc/deadcode").Output())
+	}
+	if _, err := os.Stat("/tmp/mlint/bin/grind"); err != nil {
+		fmt.Println(exec.Command("go", "get", "rsc.io/grind").Output())
 	}
 	return nil
 }
@@ -85,6 +88,12 @@ func main() {
 		if !check(chk, "./...") {
 			ok = false
 		}
+	}
+	if !check("deadcode", ".") {
+		ok = false
+	}
+	if !check("grind", ".") {
+		ok = false
 	}
 
 	if ok {
